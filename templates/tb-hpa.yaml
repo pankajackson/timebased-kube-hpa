@@ -1,0 +1,48 @@
+{{- if .Values.timebased_autoscaling.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tbhpa.fullname" . }}-scale-up-job
+spec:
+  schedule: "{{ .Values.timebased_autoscaling.scaleup.schedule }}"
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ include "tbhpa.serviceAccountName" . }}
+          containers:
+          - name: {{ include "tbhpa.fullname" . }}-scale-up-job
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/sh
+            - -c
+            - kubectl patch hpa {{ include "tbhpa.fullname" . }} --patch '{"spec":{"maxReplicas":{{ .Values.timebased_autoscaling.scaleup.maxReplicas }}}}'
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "tbhpa.fullname" . }}-scale-down-job
+spec:
+  schedule: "{{ .Values.timebased_autoscaling.scaledown.schedule }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ include "tbhpa.serviceAccountName" . }}
+          containers:
+          - name: {{ include "tbhpa.fullname" . }}-scale-down-job
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/sh
+            - -c
+            - kubectl patch hpa {{ include "tbhpa.fullname" . }} --patch '{"spec":{"maxReplicas":{{ .Values.timebased_autoscaling.scaledown.maxReplicas }}}}'
+          restartPolicy: OnFailure
+{{- end -}}
