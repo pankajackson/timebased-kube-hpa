@@ -6,9 +6,9 @@ metadata:
   name: {{ include "tbhpa.fullname" . }}-scale-up-job
 spec:
   schedule: "{{ .Values.timebased_autoscaling.scaleup.schedule }}"
-  successfulJobsHistoryLimit: 0
-  failedJobsHistoryLimit: 1
-  concurrencyPolicy: Forbid
+  concurrencyPolicy: Replace # Forbid
+  # successfulJobsHistoryLimit: 0
+  # failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       template:
@@ -20,7 +20,7 @@ spec:
             command:
             - /bin/sh
             - -c
-            - kubectl patch hpa {{ include "tbhpa.fullname" . }} --patch '{"spec":{"maxReplicas":{{ .Values.timebased_autoscaling.scaleup.maxReplicas }}}}'
+            - kubectl patch hpa {{ include "tbhpa.fullname" . }} --patch '{"spec":{"minReplicas":{{ .Values.timebased_autoscaling.scaleup.minReplicas }},"maxReplicas":{{ .Values.timebased_autoscaling.scaleup.maxReplicas }}}}'
           restartPolicy: OnFailure
 ---
 apiVersion: batch/v1
@@ -29,9 +29,9 @@ metadata:
   name: {{ include "tbhpa.fullname" . }}-scale-down-job
 spec:
   schedule: "{{ .Values.timebased_autoscaling.scaledown.schedule }}"
-  concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 0
-  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Replace # Forbid
+  # successfulJobsHistoryLimit: 0
+  # failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
       template:
@@ -43,6 +43,6 @@ spec:
             command:
             - /bin/sh
             - -c
-            - kubectl patch hpa {{ include "tbhpa.fullname" . }} --patch '{"spec":{"maxReplicas":{{ .Values.timebased_autoscaling.scaledown.maxReplicas }}}}'
+            - kubectl patch hpa {{ include "tbhpa.fullname" . }} --patch '{"spec":{"minReplicas":{{ .Values.timebased_autoscaling.scaledown.minReplicas }},"maxReplicas":{{ .Values.timebased_autoscaling.scaledown.maxReplicas }}}}'
           restartPolicy: OnFailure
 {{- end -}}

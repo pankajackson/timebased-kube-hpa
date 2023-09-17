@@ -77,9 +77,11 @@ timebased_autoscaling:
   enabled: true
   scaleup: 
     schedule: "*/2 * * * *"
+    minReplicas: 8
     maxReplicas: 8
   scaledown: 
-    schedule: "*/1 * * * *"
+    schedule: "*/3 * * * *"
+    minReplicas: 3
     maxReplicas: 3
 
 nodeSelector: {}
